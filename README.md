@@ -1,6 +1,6 @@
 # toastnotify-bof
 
-A Beacon Object File (BOF) for sending Windows toast notifications. Pairs with the [blog post](https://todo) for full context and use cases.
+A Beacon Object File (BOF) for sending Windows toast notifications. Pairs with the [blog post](https://brmk.me/2026/03/18/toast-my-way.html) for full context and use cases.
 
 ## Subcommands
 
