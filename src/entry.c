@@ -8,12 +8,12 @@
 #define intFree(addr) KERNEL32$HeapFree(KERNEL32$GetProcessHeap(), 0, addr)
 #define intAlloc(size) KERNEL32$HeapAlloc(KERNEL32$GetProcessHeap(), HEAP_ZERO_MEMORY, size)
 
-WINBASEAPI void* WINAPI KERNEL32$HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
-WINBASEAPI BOOL WINAPI KERNEL32$HeapFree(HANDLE, DWORD, PVOID);
-WINBASEAPI HANDLE WINAPI KERNEL32$GetProcessHeap();
-WINBASEAPI size_t __cdecl MSVCRT$wcslen(const wchar_t *_Str);
-WINBASEAPI int __cdecl MSVCRT$_snwprintf(wchar_t * __restrict__ _Dest, size_t _Count, const wchar_t * __restrict__ _Format, ...);
-WINBASEAPI int __cdecl MSVCRT$strcmp(const char *_Str1,const char *_Str2);
+DECLSPEC_IMPORT void* WINAPI KERNEL32$HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
+DECLSPEC_IMPORT BOOL WINAPI KERNEL32$HeapFree(HANDLE, DWORD, PVOID);
+DECLSPEC_IMPORT HANDLE WINAPI KERNEL32$GetProcessHeap();
+DECLSPEC_IMPORT size_t __cdecl MSVCRT$wcslen(const wchar_t *_Str);
+DECLSPEC_IMPORT int __cdecl MSVCRT$_snwprintf(wchar_t * __restrict__ _Dest, size_t _Count, const wchar_t * __restrict__ _Format, ...);
+DECLSPEC_IMPORT int __cdecl MSVCRT$strcmp(const char *_Str1, const char *_Str2);
 
 DECLSPEC_IMPORT int WINAPI KERNEL32$MultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
 
@@ -24,7 +24,6 @@ DECLSPEC_IMPORT WINBASEAPI DWORD WINAPI KERNEL32$GetLastError();
 /* Registry */
 DECLSPEC_IMPORT LONG WINAPI ADVAPI32$RegOpenKeyExW(HKEY hKey, LPCWSTR lpSubKey, DWORD ulOptions, DWORD samDesired, HKEY *phkResult);
 DECLSPEC_IMPORT LONG WINAPI ADVAPI32$RegEnumKeyExW(HKEY hKey, DWORD dwIndex, LPWSTR lpName, LPDWORD lpcchName, LPDWORD lpReserved, LPWSTR lpClass, LPDWORD lpcchClass, PFILETIME lpftLastWriteTime);
-DECLSPEC_IMPORT LONG WINAPI ADVAPI32$RegEnumValueW(HKEY hKey, DWORD dwIndex, LPWSTR lpValueName, LPDWORD lpcchValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
 DECLSPEC_IMPORT LONG WINAPI ADVAPI32$RegCloseKey(HKEY hKey);
 
 /* HSTRING */
@@ -199,10 +198,10 @@ fail_xmlio:
     xmlIO->lpVtbl->Release(xmlIO);
 fail_xmldoc:
     if (xmlDoc) xmlDoc->lpVtbl->Release(xmlDoc);
-fail_manager:
-    if (toastManager) toastManager->lpVtbl->Release(toastManager);
 fail_toast:
     if (toast) toast->lpVtbl->Release(toast);
+fail_manager:
+    if (toastManager) toastManager->lpVtbl->Release(toastManager);
 fail_early:
     if (roInitCalled) COMBASE$RoUninitialize();
     return 1;
@@ -289,6 +288,7 @@ int sendToastCustom(const wchar_t *aumid, const char *b64xml, int b64len)
 
     int ret = sendToastXml(aumid, xmlWide);
     intFree(xmlWide);
+    intFree(xmlUtf8);
     return ret;
 }
 
@@ -321,12 +321,18 @@ void go(char *args, int len)
             return;
         }
 
-        wchar_t aumid[256], title[256], text_buf[1024];
+        wchar_t aumid[256], title[256];
+        wchar_t *text_buf = (wchar_t *)intAlloc(1024 * sizeof(wchar_t));
+        if (!text_buf) {
+            BeaconPrintf(CALLBACK_ERROR, "Failed to allocate text_buf\n");
+            return;
+        }
         KERNEL32$MultiByteToWideChar(CP_ACP, 0, aumid_a, -1, aumid, 256);
         KERNEL32$MultiByteToWideChar(CP_ACP, 0, title_a, -1, title, 256);
         KERNEL32$MultiByteToWideChar(CP_ACP, 0, text_a, -1, text_buf, 1024);
 
         sendToast(aumid, title, text_buf);
+        intFree(text_buf);
         return;
     }
 
