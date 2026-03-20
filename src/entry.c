@@ -15,6 +15,8 @@ WINBASEAPI size_t __cdecl MSVCRT$wcslen(const wchar_t *_Str);
 WINBASEAPI int __cdecl MSVCRT$_snwprintf(wchar_t * __restrict__ _Dest, size_t _Count, const wchar_t * __restrict__ _Format, ...);
 WINBASEAPI int __cdecl MSVCRT$strcmp(const char *_Str1,const char *_Str2);
 
+DECLSPEC_IMPORT int WINAPI KERNEL32$MultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
+
 /* Base64 */
 DECLSPEC_IMPORT BOOL    WINAPI CRYPT32$CryptStringToBinaryA(LPCSTR, DWORD, DWORD, BYTE *, DWORD *, DWORD *, DWORD *);
 DECLSPEC_IMPORT WINBASEAPI DWORD WINAPI KERNEL32$GetLastError();
@@ -257,19 +259,28 @@ int sendToastCustom(const wchar_t *aumid, const char *b64xml, int b64len)
     }
     xmlUtf8[xmlLen] = '\0';
 
-    /* ASCII/UTF-8 -> wchar_t (manual, byte-by-byte) */
-    wchar_t *xmlWide = (wchar_t *)intAlloc((xmlLen + 1) * sizeof(wchar_t));
+    int wLen = KERNEL32$MultiByteToWideChar(CP_UTF8, 0, xmlUtf8, -1, NULL, 0);
+    if (wLen == 0) {
+        BeaconPrintf(CALLBACK_ERROR, "MultiByteToWideChar sizing failed: 0x%08lx\n",
+                    (unsigned long)KERNEL32$GetLastError());
+        intFree(xmlUtf8);
+        return 1;
+    }
+
+    wchar_t *xmlWide = (wchar_t *)intAlloc(wLen * sizeof(wchar_t));
     if (!xmlWide) {
         BeaconPrintf(CALLBACK_ERROR, "Failed to allocate xmlWide\n");
         intFree(xmlUtf8);
         return 1;
     }
 
-    DWORD i;
-    for (i = 0; i <= xmlLen; i++) {
-        xmlWide[i] = (wchar_t)(unsigned char)xmlUtf8[i];
+    if (KERNEL32$MultiByteToWideChar(CP_UTF8, 0, xmlUtf8, -1, xmlWide, wLen) == 0) {
+        BeaconPrintf(CALLBACK_ERROR, "MultiByteToWideChar conversion failed: 0x%08lx\n",
+                    (unsigned long)KERNEL32$GetLastError());
+        intFree(xmlWide);
+        intFree(xmlUtf8);
+        return 1;
     }
-    intFree(xmlUtf8);
 
     int ret = sendToastXml(aumid, xmlWide);
     intFree(xmlWide);
