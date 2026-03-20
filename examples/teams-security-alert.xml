@@ -1,0 +1,69 @@
+<toast launch="action=openConversation&amp;source=teams">
+  <header id="teamsChat"
+          title="Microsoft Teams"
+          arguments="chat"
+          activationType="protocol"/>
+  <visual>
+    <binding template="ToastGeneric">
+      <image placement="hero"
+             src="https://example.com/teams-banner.png"/>
+      <image placement="appLogoOverride"
+             hint-crop="circle"
+             src="https://example.com/teams-logo.png"/>
+      <text>Microsoft Teams</text>
+      <text hint-maxLines="2">
+        New priority message from Security Operations
+      </text>
+      <group>
+        <subgroup hint-weight="1">
+          <text hint-style="captionSubtle">Channel</text>
+          <text>Incident Response</text>
+        </subgroup>
+        <subgroup hint-weight="1">
+          <text hint-style="captionSubtle">Priority</text>
+          <text>High</text>
+        </subgroup>
+        <subgroup hint-weight="1">
+          <text hint-style="captionSubtle">Sender</text>
+          <text>SOC Automation</text>
+        </subgroup>
+      </group>
+      <text>
+        A new security event requires your attention. Review the incident timeline and confirm mitigation status.
+      </text>
+      <progress title="Incident analysis"
+                value="0.42"
+                valueStringOverride="42%"
+                status="Processing telemetry"/>
+      <text placement="attribution">
+        Microsoft Teams
+      </text>
+    </binding>
+  </visual>
+  <actions>
+    <input id="responseText"
+           type="text"
+           placeHolderContent="Reply to the channel"/>
+    <input id="severity"
+           type="selection"
+           defaultInput="medium">
+      <selection id="low" content="Low"/>
+      <selection id="medium" content="Medium"/>
+      <selection id="high" content="High"/>
+      <selection id="critical" content="Critical"/>
+    </input>
+    <action content="Open in Teams"
+            activationType="protocol"
+            arguments="msteams:/l/chat/0/0?users=user@example.com"/>
+    <action content="Join Meeting"
+            activationType="protocol"
+            arguments="msteams:/l/meeting/join?confId=123456789"/>
+    <action content="View Incident"
+            activationType="protocol"
+            arguments="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.web/incident"/>
+    <action content="Dismiss"
+            activationType="background"
+            arguments="dismiss"/>
+  </actions>
+  <audio src="ms-winsoundevent:Notification.IM"/>
+</toast>

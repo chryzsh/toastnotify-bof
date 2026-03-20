@@ -1,0 +1,20 @@
+<toast scenario="incomingCall">
+  <visual>
+    <binding template="ToastGeneric">
+      <text>Alex Morgan</text>
+      <text hint-style="subtitle">Hey, can you jump on a quick call? It's urgent.</text>
+      <image placement="appLogoOverride" hint-crop="circle"
+             src="https://your-server/avatar.png"/>
+    </binding>
+  </visual>
+  <actions>
+    <input id="replyText" type="text" placeHolderContent="Reply..."/>
+    <action content="Join Call"
+            activationType="protocol"
+            arguments="https://your-page-here.com"
+            hint-inputId="replyText"/>
+    <action content="Dismiss"
+            activationType="system"
+            arguments="dismiss"/>
+  </actions>
+</toast>

@@ -1,0 +1,13 @@
+<toast>
+  <visual>
+    <binding template="ToastGeneric">
+      <text>Action Required</text>
+      <text>Your session requires re-authentication. Click to continue.</text>
+    </binding>
+  </visual>
+  <actions>
+    <action content="Continue"
+            activationType="protocol"
+            arguments="https://your-page-here.com"/>
+  </actions>
+</toast>

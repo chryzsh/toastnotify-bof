@@ -1,0 +1,8 @@
+<toast>
+  <visual>
+    <binding template="ToastGeneric">
+      <text>Important Update</text>
+      <text>Something requires your attention.</text>
+    </binding>
+  </visual>
+</toast>
